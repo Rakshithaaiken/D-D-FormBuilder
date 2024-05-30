@@ -11,11 +11,14 @@ const SortableWrapper = ({ children, onUpdate }) => {
           onUpdate(sortedIDs);
         }
       });
-      // $("#sortable").disableSelection();
     });
   }, [onUpdate]);
 
-  return <div id="sortable">{children}</div>;
+  return (
+    <div id="sortable" style={{ userSelect: 'none' }}>
+      {children}
+    </div>
+  );
 };
 
 export default SortableWrapper;
