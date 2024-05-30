@@ -1,7 +1,7 @@
-import React from 'react';
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
-import FormBuilder from './FormBuilder';
+import React from "react";
+import { DndProvider } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
+import FormBuilder from "./FormBuilder";
 
 function App() {
   return (
@@ -13,5 +13,4 @@ function App() {
     </DndProvider>
   );
 }
-
 export default App;

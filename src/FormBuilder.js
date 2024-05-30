@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ReactFormBuilder, ElementStore } from 'react-form-builder2';
+import { ReactFormBuilder } from 'react-form-builder2';
 import 'react-form-builder2/dist/app.css';
 import SortableWrapper from './SortableWrapper';
 import $ from 'jquery';
@@ -66,54 +66,59 @@ const FormBuilder = () => {
   };
 
   return (
-    <div>
-      <h3>Available Fields</h3>
-      <button onClick={() => handleAddField('text')}>Text Field</button>
-      <button onClick={() => handleAddField('checkbox')}>Checkbox</button>
-      <button onClick={() => handleAddField('radio')}>Radio Group</button>
-      <button onClick={() => handleAddField('date')}>Date Picker</button>
+    <div style={{ display: 'flex' }}>
+      <div style={{ flex: 1, padding: '20px', borderRight: '1px solid gray' }}>
+        <h3>Available Fields</h3>
+        <button onClick={() => handleAddField('text')}> Text Field</button>
+        <button onClick={() => handleAddField('checkbox')}> Checkbox</button>
+        <button onClick={() => handleAddField('radio')}> Radio Group</button>
+        <button onClick={() => handleAddField('date')}> Date Picker</button>
+      </div>
       
-      <h3>Form</h3>
-      <SortableWrapper onUpdate={handleSortUpdate}>
-        {formFields.map((field, index) => (
-          <div key={field.id} id={field.id} style={{ padding: '8px', border: '1px solid gray', margin: '4px' }}>
-            <span>{field.type} - {field.label}</span>
-            <button className = "mx-2" onClick={() => handleEditField(index)}>Edit</button>
-            <button onClick={() => handleRemoveField(index)}>Delete</button>
-          </div>
-        ))}
-      </SortableWrapper>
-
-      {editingField && (
-        <div>
-          <h3>Edit Field</h3>
-          <label>
-            Label:
-            <input name="label" value={editingField.label} onChange={handleFieldChange} />
-          </label>
-          {editingField.type === 'text' || editingField.type === 'date' ? (
-            <label>
-              Placeholder:
-              <input name="placeholder" value={editingField.placeholder} onChange={handleFieldChange} />
-            </label>
-          ) : (
-            <div>
-              <label>Options:</label>
-              {editingField.options.map((option, i) => (
-                <input key={i} value={option} onChange={(e) => handleOptionChange(i, e.target.value)} />
-              ))}
-              <button onClick={addOption}>Add Option</button>
+      <div style={{ flex: 2, padding: '20px', borderRight: '1px solid gray' }}>
+        <h3>Form</h3>
+        <SortableWrapper onUpdate={handleSortUpdate}>
+          {formFields.map((field, index) => (
+            <div key={field.id} id={field.id} style={{ padding: '8px', border: '1px solid gray', margin: '4px' }}>
+              <span>{field.type} - {field.label}</span>
+              <button onClick={() => handleEditField(index)} style={{ marginLeft: '8px' }}>Edit</button>
+              <button onClick={() => handleRemoveField(index)} style={{ marginLeft: '8px' }}>Delete</button>
             </div>
-          )}
-          <button onClick={handleSaveField}>Save</button>
-        </div>
-      )}
+          ))}
+        </SortableWrapper>
 
-      <h3>Form Output</h3>
-      <pre>{JSON.stringify(formFields, null, 2)}</pre>
+        {editingField && (
+          <div style={{ marginTop: '20px' }}>
+            <h3>Edit Field</h3>
+            <label>
+              Label:
+              <input name="label" value={editingField.label} onChange={handleFieldChange} style={{ marginLeft: '8px' }} />
+            </label>
+            {editingField.type === 'text' || editingField.type === 'date' ? (
+              <label>
+                Placeholder:
+                <input name="placeholder" value={editingField.placeholder} onChange={handleFieldChange} style={{ marginLeft: '8px' }} />
+              </label>
+            ) : (
+              <div>
+                <label>Options:</label>
+                {editingField.options.map((option, i) => (
+                  <input key={i} value={option} onChange={(e) => handleOptionChange(i, e.target.value)} style={{ marginLeft: '8px', display: 'block', marginTop: '4px' }} />
+                ))}
+                <button onClick={addOption} style={{ marginTop: '8px' }}>Add Option</button>
+              </div>
+            )}
+            <button onClick={handleSaveField} style={{ marginTop: '8px' }}>Save</button>
+          </div>
+        )}
+      </div>
+
+      <div style={{ flex: 1, padding: '20px' }}>
+        <h3>Form Output</h3>
+        <pre>{JSON.stringify(formFields, null, 2)}</pre>
+      </div>
     </div>
   );
 };
-
 
 export default FormBuilder;
