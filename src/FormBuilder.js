@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { ReactFormBuilder } from 'react-form-builder2';
-import 'react-form-builder2/dist/app.css';
 import SortableWrapper from './SortableWrapper';
 import $ from 'jquery';
 import 'jquery-ui/ui/widgets/sortable';
+import 'react-form-builder2/dist/app.css';
 
 const initialFields = [
   { id: '1', type: 'text', label: 'Text Field', placeholder: 'Enter text' },
@@ -16,7 +15,8 @@ const FormBuilder = () => {
   const [formFields, setFormFields] = useState(initialFields);
   const [editingField, setEditingField] = useState(null);
   const [editingIndex, setEditingIndex] = useState(null);
-  
+  const [showOutput, setShowOutput] = useState(false);
+
   const handleAddField = (type) => {
     const newField = {
       id: `${Date.now()}`,
@@ -65,14 +65,26 @@ const FormBuilder = () => {
     setFormFields(sortedFields);
   };
 
+  const toggleOutputModal = () => {
+    setShowOutput(!showOutput);
+  };
+
   return (
     <div style={{ display: 'flex' }}>
       <div style={{ flex: 1, padding: '20px', borderRight: '1px solid gray' }}>
         <h3>Available Fields</h3>
-        <button onClick={() => handleAddField('text')}> Text Field</button>
+        <button className="my-20" onClick={() => handleAddField('text')}> Text Field</button>
         <button onClick={() => handleAddField('checkbox')}> Checkbox</button>
         <button onClick={() => handleAddField('radio')}> Radio Group</button>
         <button onClick={() => handleAddField('date')}> Date Picker</button>
+
+        <button style={{ marginTop: '20px' }} onClick={toggleOutputModal}>Show Output</button>
+        {showOutput && (
+          <div>
+            <h3>Output</h3>
+            <pre>{JSON.stringify(formFields, null, 2)}</pre>
+          </div>
+        )}
       </div>
       
       <div style={{ flex: 2, padding: '20px', borderRight: '1px solid gray' }}>
@@ -80,7 +92,7 @@ const FormBuilder = () => {
         <SortableWrapper onUpdate={handleSortUpdate}>
           {formFields.map((field, index) => (
             <div key={field.id} id={field.id} style={{ padding: '8px', border: '1px solid gray', margin: '4px' }}>
-              <span>{field.type} - {field.label}</span>
+              <span style={{ marginRight: '8px' }}>{field.type} - {field.label}</span>
               <button onClick={() => handleEditField(index)} style={{ marginLeft: '8px' }}>Edit</button>
               <button onClick={() => handleRemoveField(index)} style={{ marginLeft: '8px' }}>Delete</button>
             </div>
@@ -115,10 +127,41 @@ const FormBuilder = () => {
 
       <div style={{ flex: 1, padding: '20px' }}>
         <h3>Form Output</h3>
-        <pre>{JSON.stringify(formFields, null, 2)}</pre>
+        <button onClick={toggleOutputModal}>Show Output</button>
       </div>
+
+      {showOutput && (
+        <div style={modalStyles.overlay}>
+          <div style={modalStyles.modal}>
+            <h3>Form Output</h3>
+            <pre>{JSON.stringify(formFields, null, 2)}</pre>
+            <button onClick={toggleOutputModal} style={{ marginTop: '20px' }}>Close</button>
+          </div>
+        </div>
+      )}
     </div>
   );
+};
+
+const modalStyles = {
+  overlay: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modal: {
+    background: 'white',
+    padding: '20px',
+    borderRadius: '4px',
+    minWidth: '300px',
+    textAlign: 'center',
+  },
 };
 
 export default FormBuilder;
