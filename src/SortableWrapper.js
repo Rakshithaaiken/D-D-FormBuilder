@@ -11,7 +11,7 @@ const SortableWrapper = ({ children, onUpdate }) => {
           onUpdate(sortedIDs);
         }
       });
-      $("#sortable").disableSelection();
+      // $("#sortable").disableSelection();
     });
   }, [onUpdate]);
 
