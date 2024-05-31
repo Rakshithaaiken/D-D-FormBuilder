@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import SortableWrapper from './SortableWrapper';
-import $ from 'jquery';
+import SortableWrapper from './components/SortableWrapper';
 import 'jquery-ui/ui/widgets/sortable';
 import 'react-form-builder2/dist/app.css';
+import './FormBuilder.css'; 
 
 const initialFields = [
   { id: '1', type: 'text', label: 'Text Field', placeholder: 'Enter text' },
@@ -26,6 +26,18 @@ const FormBuilder = () => {
       options: type === 'checkbox' || type === 'radio' ? ['Option 1'] : undefined
     };
     setFormFields([...formFields, newField]);
+  };
+
+  const handleAddColumn = () => {
+    const newColumn = {
+      id: `${Date.now()}`,
+      type: 'column',
+      fields: [
+        { id: `${Date.now()}-1`, type: 'text', label: 'Text Field 1', placeholder: 'Enter text' },
+        { id: `${Date.now()}-2`, type: 'text', label: 'Text Field 2', placeholder: 'Enter text' }
+      ]
+    };
+    setFormFields([...formFields, newColumn]);
   };
 
   const handleEditField = (index) => {
@@ -69,30 +81,74 @@ const FormBuilder = () => {
     setShowOutput(!showOutput);
   };
 
-  return (
-    <div style={{ display: 'flex' }}>
-      <div style={{ flex: 1, padding: '20px', borderRight: '1px solid gray' }}>
-        <h3>Available Fields</h3>
-        <button className="my-20" onClick={() => handleAddField('text')}> Text Field</button>
-        <button onClick={() => handleAddField('checkbox')}> Checkbox</button>
-        <button onClick={() => handleAddField('radio')}> Radio Group</button>
-        <button onClick={() => handleAddField('date')}> Date Picker</button>
-
-        <button style={{ marginTop: '20px' }} onClick={toggleOutputModal}>Show Output</button>
-        {showOutput && (
-          <div>
-            <h3>Output</h3>
-            <pre>{JSON.stringify(formFields, null, 2)}</pre>
+  const renderField = (field) => {
+    switch (field.type) {
+      case 'text':
+        return (
+          <div key={field.id} className="form-group">
+            <label>{field.label}</label>
+            <input type="text" placeholder={field.placeholder} />
           </div>
-        )}
+        );
+      case 'checkbox':
+        return (
+          <div key={field.id} className="form-group">
+            <label>{field.label}</label>
+            {field.options.map((option, i) => (
+              <div key={i}>
+                <input type="checkbox" id={`${field.id}-${i}`} />
+                <label htmlFor={`${field.id}-${i}`}>{option}</label>
+              </div>
+            ))}
+          </div>
+        );
+      case 'radio':
+        return (
+          <div key={field.id} className="form-group">
+            <label>{field.label}</label>
+            {field.options.map((option, i) => (
+              <div key={i}>
+                <input type="radio" name={field.id} id={`${field.id}-${i}`} />
+                <label htmlFor={`${field.id}-${i}`}>{option}</label>
+              </div>
+            ))}
+          </div>
+        );
+      case 'date':
+        return (
+          <div key={field.id} className="form-group">
+            <label>{field.label}</label>
+            <input type="date" />
+          </div>
+        );
+      case 'column':
+        return (
+          <div key={field.id} className="form-column">
+            {field.fields.map(subField => renderField(subField))}
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div style={{ display: 'flex', height: '100vh' }}>
+      <div style={{ flex: 1, padding: '20px', borderRight: '1px solid gray', overflowY: 'auto' }}>
+        <h3>Available Fields</h3>
+        <button onClick={() => handleAddField('text')} className="button">Text Field</button>
+        <button onClick={() => handleAddField('checkbox')} className="button"> Checkbox</button>
+        <button onClick={() => handleAddField('radio')} className="button"> Radio Group</button>
+        <button onClick={() => handleAddField('date')} className="button"> Date Picker</button>
+        <button onClick={handleAddColumn} className="button">Add Column</button>
       </div>
       
-      <div style={{ flex: 2, padding: '20px', borderRight: '1px solid gray' }}>
+      <div style={{ flex: 2, padding: '20px', borderRight: '1px solid gray', overflowY: 'auto' }}>
         <h3>Form</h3>
         <SortableWrapper onUpdate={handleSortUpdate}>
           {formFields.map((field, index) => (
             <div key={field.id} id={field.id} style={{ padding: '8px', border: '1px solid gray', margin: '4px' }}>
-              <span style={{ marginRight: '8px' }}>{field.type} - {field.label}</span>
+              <span>{field.type} - {field.label || 'Column'}</span>
               <button onClick={() => handleEditField(index)} style={{ marginLeft: '8px' }}>Edit</button>
               <button onClick={() => handleRemoveField(index)} style={{ marginLeft: '8px' }}>Delete</button>
             </div>
@@ -114,10 +170,10 @@ const FormBuilder = () => {
             ) : (
               <div>
                 <label>Options:</label>
-                {editingField.options.map((option, i) => (
+                {editingField.options && editingField.options.map((option, i) => (
                   <input key={i} value={option} onChange={(e) => handleOptionChange(i, e.target.value)} style={{ marginLeft: '8px', display: 'block', marginTop: '4px' }} />
                 ))}
-                <button onClick={addOption} style={{ marginTop: '8px' }}>Add Option</button>
+                {editingField.options && <button onClick={addOption} style={{ marginTop: '8px' }}>Add Option</button>}
               </div>
             )}
             <button onClick={handleSaveField} style={{ marginTop: '8px' }}>Save</button>
@@ -125,43 +181,24 @@ const FormBuilder = () => {
         )}
       </div>
 
-      <div style={{ flex: 1, padding: '20px' }}>
+      <div style={{ flex: 1, padding: '20px', overflowY: 'auto' }}>
         <h3>Form Output</h3>
-        <button onClick={toggleOutputModal}>Show Output</button>
+        <button onClick={toggleOutputModal} className="button">Show Output</button>
       </div>
 
       {showOutput && (
-        <div style={modalStyles.overlay}>
-          <div style={modalStyles.modal}>
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <button onClick={toggleOutputModal} className="close-button">X</button>
             <h3>Form Output</h3>
-            <pre>{JSON.stringify(formFields, null, 2)}</pre>
-            <button onClick={toggleOutputModal} style={{ marginTop: '20px' }}>Close</button>
+            <form className="form-output">
+              {formFields.map((field) => renderField(field))}
+            </form>
           </div>
         </div>
       )}
     </div>
   );
-};
-
-const modalStyles = {
-  overlay: {
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modal: {
-    background: 'white',
-    padding: '20px',
-    borderRadius: '4px',
-    minWidth: '300px',
-    textAlign: 'center',
-  },
 };
 
 export default FormBuilder;
