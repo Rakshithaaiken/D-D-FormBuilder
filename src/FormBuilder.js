@@ -92,7 +92,7 @@ const FormBuilder = () => {
   };
 
   const handleSortUpdate = (sortedIDs) => {
-    const sortedFields = sortedIDs.map(id => formFields.find(field => field.id === id));
+    const sortedFields = sortedIDs.map(id => formFields.find(field => field.id === id)).filter(field => field !== undefined);
     setFormFields(sortedFields);
   };
 
@@ -102,17 +102,17 @@ const FormBuilder = () => {
 
   const renderField = (field, index, isNested = false, isOutputView = false) => {
     const fieldProps = {
-      key: field.id,
+      key: field?.id,
       style: { marginBottom: '10px', padding: '8px', border: '1px solid gray', margin: '4px' }
     };
 
-    if (field.type === 'column') {
+    if (field?.type === 'column') {
       return (
         <div {...fieldProps}>
-          <label>{field.label || 'Column'}</label>
+          <label>{field?.label || 'Column'}</label>
           <div className="form-column">
-            {field.fields.map((subField, subIndex) => (
-              <div key={subField.id} className="form-column-item">
+            {field?.fields?.map((subField, subIndex) => (
+              <div key={subField?.id} className="form-column-item">
                 {renderField(subField, subIndex, true, isOutputView)}
               </div>
             ))}
@@ -129,21 +129,21 @@ const FormBuilder = () => {
 
     return (
       <div {...fieldProps}>
-        <label>{field.label}</label>
-        {field.type === 'text' && <input type="text" placeholder={field.placeholder} />}
-        {field.type === 'date' && <input type="date" />}
-        {field.type === 'checkbox' &&
-          field.options.map((option, i) => (
+        <label>{field?.label}</label>
+        {field?.type === 'text' && <input type="text" placeholder={field?.placeholder} />}
+        {field?.type === 'date' && <input type="date" />}
+        {field?.type === 'checkbox' &&
+          field?.options?.map((option, i) => (
             <div key={i}>
-              <input type="checkbox" id={`${field.id}-${i}`} />
-              <label htmlFor={`${field.id}-${i}`}>{option}</label>
+              <input type="checkbox" id={`${field?.id}-${i}`} />
+              <label htmlFor={`${field?.id}-${i}`}>{option}</label>
             </div>
           ))}
-        {field.type === 'radio' &&
-          field.options.map((option, i) => (
+        {field?.type === 'radio' &&
+          field?.options?.map((option, i) => (
             <div key={i}>
-              <input type="radio" name={field.id} id={`${field.id}-${i}`} />
-              <label htmlFor={`${field.id}-${i}`}>{option}</label>
+              <input type="radio" name={field?.id} id={`${field?.id}-${i}`} />
+              <label htmlFor={`${field?.id}-${i}`}>{option}</label>
             </div>
           ))}
         {!isNested && !isOutputView && (
@@ -166,10 +166,10 @@ const FormBuilder = () => {
     <div style={{ display: 'flex', height: '100vh' }}>
       <div style={{ flex: 1, padding: '20px', borderRight: '1px solid gray', overflowY: 'auto' }}>
         <h3>Available Fields</h3>
-        <button onClick={() => handleAddField('text')} className="button">Text Field</button>
-        <button onClick={() => handleAddField('checkbox')} className="button"> Checkbox</button>
-        <button onClick={() => handleAddField('radio')} className="button">Radio Group</button>
-        <button onClick={() => handleAddField('date')} className="button">Date Picker</button>
+        <button onClick={() => handleAddField('text')} className="button">Add Text Field</button>
+        <button onClick={() => handleAddField('checkbox')} className="button">Add Checkbox</button>
+        <button onClick={() => handleAddField('radio')} className="button">Add Radio Group</button>
+        <button onClick={() => handleAddField('date')} className="button">Add Date Picker</button>
         <button onClick={handleAddColumn} className="button">Add Column</button>
       </div>
       
@@ -184,21 +184,21 @@ const FormBuilder = () => {
             <h3>Edit Field</h3>
             <label>
               Label:
-              <input name="label" value={editingField.label} onChange={handleFieldChange} style={{ marginLeft: '8px' }} />
+              <input name="label" value={editingField?.label} onChange={handleFieldChange} style={{ marginLeft: '8px' }} />
             </label>
-            {(editingField.type === 'text' || editingField.type === 'date') && (
+            {(editingField?.type === 'text' || editingField?.type === 'date') && (
               <label>
                 Placeholder:
-                <input name="placeholder" value={editingField.placeholder} onChange={handleFieldChange} style={{ marginLeft: '8px' }} />
+                <input name="placeholder" value={editingField?.placeholder} onChange={handleFieldChange} style={{ marginLeft: '8px' }} />
               </label>
             )}
-            {(editingField.type === 'checkbox' || editingField.type === 'radio') && (
+            {(editingField?.type === 'checkbox' || editingField?.type === 'radio') && (
               <div>
                 <label>Options:</label>
-                {editingField.options && editingField.options.map((option, i) => (
-                  <input key={i} value={option} onChange={(e) => handleOptionChange(i, e.target.value)} style={{ marginLeft: '8px', display: 'block', marginTop: '4px' }} />
+                {editingField?.options && editingField?.options.map((option, i) => (
+                  <input key={i} value={option} onChange={(e) => handleOptionChange(i, e.target.value)} style={{ marginLeft: '8px', display: 'block' }} />
                 ))}
-                {editingField.options && <button onClick={addOption} style={{ marginTop: '8px' }}>Add Option</button>}
+                <button onClick={addOption} style={{ marginTop: '8px' }}>Add Option</button>
               </div>
             )}
             <button onClick={handleSaveField} style={{ marginTop: '8px' }}>Save</button>
