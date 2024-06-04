@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import SortableWrapper from './components/SortableWrapper';
 import 'jquery-ui/ui/widgets/sortable';
-import './FormBuilder.css'; // Import the CSS file
+import './FormBuilder.css';
 
 const initialFields = [
   { id: '1', type: 'text', label: 'Text Field', placeholder: 'Enter text' },
@@ -15,6 +15,7 @@ const initialFields = [
 
 const FormBuilder = () => {
   const [formFields, setFormFields] = useState(initialFields);
+  const [savedFormFields, setSavedFormFields] = useState([]);
   const [editingField, setEditingField] = useState(null);
   const [editingIndex, setEditingIndex] = useState(null);
   const [nestedEditingIndex, setNestedEditingIndex] = useState(null);
@@ -37,8 +38,8 @@ const FormBuilder = () => {
       type: 'column',
       label: 'Column',
       fields: [
-        { id: `${Date.now()}-1`, type: 'text', label: 'Fist name  ', placeholder: 'Enter name' },
-        { id: `${Date.now()}-2`, type: 'text', label: 'Last name', placeholder: 'Enter name' }
+        { id: `${Date.now()}-1`, type: 'text', label: 'Fist name', placeholder: 'Enter text' },
+        { id: `${Date.now()}-2`, type: 'text', label: 'Last name', placeholder: 'Enter text' }
       ]
     };
     setFormFields([...formFields, newColumn]);
@@ -97,6 +98,11 @@ const FormBuilder = () => {
   const handleSortUpdate = (sortedIDs) => {
     const sortedFields = sortedIDs.map(id => formFields.find(field => field.id === id)).filter(field => field !== undefined);
     setFormFields(sortedFields);
+  };
+
+  const handleSaveForm = () => {
+    setSavedFormFields([...formFields]);
+    alert('Form has been saved successfully!');
   };
 
   const toggleOutputModal = () => {
@@ -187,20 +193,14 @@ const FormBuilder = () => {
         <button onClick={handleAddColumn} className="button">Add Column</button>
       </div>
 
-      <div style={{ flex: 2, padding: '20px', overflowY: 'auto' }}>
+      <div style={{ flex: 2, padding: '20px', borderRight: '1px solid gray', overflowY: 'auto' }}>
         <h3>Form Builder</h3>
         <SortableWrapper onUpdate={handleSortUpdate}>
-          {formFields.map((field, index) => (
-            <div key={field.id} id={field.id}>
-              {renderField(field, index)}
-            </div>
-          ))}
+          {formFields.map((field, index) => renderField(field, index))}
         </SortableWrapper>
-      </div>
-
-      <div style={{ flex: 1, padding: '20px', overflowY: 'auto' }}>
-        <h3>Form Output</h3>
-        <button onClick={toggleOutputModal} className="button">Show Output</button>
+        <button onClick={handleSaveForm} className="button">Save Form</button>
+        <button onClick={toggleOutputModal} className="button">View Output</button>
+        {/* <button onClick={handleResetForm} className="button">Reset Form</button> */}
       </div>
 
       {showOutput && (
@@ -209,7 +209,7 @@ const FormBuilder = () => {
             <button onClick={toggleOutputModal} className="close-button">X</button>
             <h3>Form Output</h3>
             <form className="form-output">
-              {formFields.map((field) => renderField(field, null, false, true))}
+              {savedFormFields.map((field) => renderField(field, null, false, true))}
             </form>
           </div>
         </div>

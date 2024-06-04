@@ -11,6 +11,10 @@
   cursor: pointer;
 }
 
+.button:hover {
+  background-color: #6873e8;
+}
+
 /* Form Output Styles */
 .form-output {
   padding: 20px;
