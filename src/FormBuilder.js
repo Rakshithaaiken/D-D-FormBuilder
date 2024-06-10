@@ -1,21 +1,22 @@
 import React, { useState } from 'react';
-import SortableWrapper from './components/SortableWrapper';
-import 'jquery-ui/ui/widgets/sortable';
-import './FormBuilder.css';
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import Column from './components/Column';
+import { renderField } from './fieldUtils'; 
+import './FormBuilder.css'; 
+import SortableWrapper from './components/SortableWrapper'; 
 
 const initialFields = [
-  { id: '1', type: 'text', label: 'Text Field', placeholder: 'Enter text' },
-  { id: '2', type: 'checkbox', label: 'Checkbox', options: ['Option 1'] },
-  { id: '3', type: 'radio', label: 'Radio Group', options: ['Option 1'] },
-  { id: '4', type: 'date', label: 'Date Picker', placeholder: '' },
-  { id: '5', type: 'select', label: 'Dropdown', options: ['Option 1'] },
-  { id: '6', type: 'textarea', label: 'Textarea', placeholder: 'Enter text' },
-  { id: '7', type: 'file', label: 'File Upload' },
+  { id: "1", type: "text", label: "Text Field", placeholder: "Enter text" },
+  { id: "2", type: "checkbox", label: "Checkbox", options: ["Option 1"] },
+  { id: "3", type: "radio", label: "Radio Group", options: ["Option 1"] },
+  { id: "4", type: "date", label: "Date Picker", placeholder: "" },
+  { id: "5", type: "select", label: "Dropdown", options: ["Option 1"] },
+  { id: "6", type: "textarea", label: "Textarea", placeholder: "Enter text" },
+  { id: "7", type: "file", label: "File Upload" },
 ];
 
 const FormBuilder = () => {
   const [formFields, setFormFields] = useState(initialFields);
-  const [savedFormFields, setSavedFormFields] = useState([]);
   const [editingField, setEditingField] = useState(null);
   const [editingIndex, setEditingIndex] = useState(null);
   const [nestedEditingIndex, setNestedEditingIndex] = useState(null);
@@ -26,8 +27,11 @@ const FormBuilder = () => {
       id: `${Date.now()}`,
       type,
       label: `${type} Label`,
-      placeholder: '',
-      options: type === 'checkbox' || type === 'radio' || type === 'select' ? ['Option 1'] : undefined
+      placeholder: "",
+      options:
+        type === "checkbox" || type === "radio" || type === "select"
+          ? ["Option 1"]
+          : undefined,
     };
     setFormFields([...formFields, newField]);
   };
@@ -35,12 +39,22 @@ const FormBuilder = () => {
   const handleAddColumn = () => {
     const newColumn = {
       id: `${Date.now()}`,
-      type: 'column',
-      label: 'Column',
+      type: "column",
+      label: "Column",
       fields: [
-        { id: `${Date.now()}-1`, type: 'text', label: 'Fist name', placeholder: 'Enter text' },
-        { id: `${Date.now()}-2`, type: 'text', label: 'Last name', placeholder: 'Enter text' }
-      ]
+        {
+          id: `${Date.now()}-1`,
+          type: "text",
+          label: "Enter text",
+          placeholder: "Enter text",
+        },
+        {
+          id: `${Date.now()}-2`,
+          type: "text",
+          label: "Enter text",
+          placeholder: "Enter text",
+        },
+      ],
     };
     setFormFields([...formFields, newColumn]);
   };
@@ -62,7 +76,9 @@ const FormBuilder = () => {
       setFormFields(formFields.filter((_, i) => i !== index));
     } else {
       const updatedFields = [...formFields];
-      updatedFields[index].fields = updatedFields[index].fields.filter((_, i) => i !== nestedIndex);
+      updatedFields[index].fields = updatedFields[index].fields.filter(
+        (_, i) => i !== nestedIndex
+      );
       setFormFields(updatedFields);
     }
   };
@@ -92,124 +108,121 @@ const FormBuilder = () => {
   };
 
   const addOption = () => {
-    setEditingField({ ...editingField, options: [...editingField.options, `Option ${editingField.options.length + 1}`] });
+    setEditingField({
+      ...editingField,
+      options: [
+        ...editingField.options,
+        `Option ${editingField.options.length + 1}`,
+      ],
+    });
   };
 
-  const handleSortUpdate = (sortedIDs) => {
-    const sortedFields = sortedIDs.map(id => formFields.find(field => field.id === id)).filter(field => field !== undefined);
-    setFormFields(sortedFields);
-  };
+  const handleSortUpdate = (result, columnIndex = null) => {
+    if (!result.destination) return;
+    const updatedFields = [...formFields];
 
-  const handleSaveForm = () => {
-    setSavedFormFields([...formFields]);
-    alert('Form has been saved successfully!');
+    if (columnIndex === null) {
+      const [movedField] = updatedFields.splice(result.source.index, 1);
+      updatedFields.splice(result.destination.index, 0, movedField);
+    } else {
+      const column = updatedFields[columnIndex];
+      const [movedField] = column.fields.splice(result.source.index, 1);
+      column.fields.splice(result.destination.index, 0, movedField);
+    }
+
+    setFormFields(updatedFields);
   };
 
   const toggleOutputModal = () => {
     setShowOutput(!showOutput);
   };
 
-  const renderField = (field, index, isNested = false, isOutputView = false) => {
-    const fieldProps = {
-      key: field.id,
-      className: 'form-group'
-    };
-
-    if (field.type === 'column') {
-      return (
-        <div {...fieldProps}>
-          <label>{field.label || 'Column'}</label>
-          <div className="form-column">
-            {field.fields.map((subField, subIndex) => (
-              <div key={subField.id} className="form-column-item">
-                {renderField(subField, subIndex, true, isOutputView)}
-              </div>
-            ))}
-          </div>
-          {!isNested && !isOutputView && (
-            <>
-              <button onClick={() => handleEditField(index)} style={{ marginLeft: '8px' }}>Edit</button>
-              <button onClick={() => handleRemoveField(index)} style={{ marginLeft: '8px' }}>Delete</button>
-            </>
-          )}
-        </div>
-      );
-    }
-
-    return (
-      <div {...fieldProps}>
-        <label>{field.label}</label>
-        {field.type === 'text' && <input type="text" placeholder={field.placeholder} />}
-        {field.type === 'date' && <input type="date" />}
-        {field.type === 'textarea' && <textarea placeholder={field.placeholder}></textarea>}
-        {field.type === 'file' && <input type="file" />}
-        {field.type === 'select' &&
-          <select>
-            {field.options.map((option, i) => (
-              <option key={i} value={option}>{option}</option>
-            ))}
-          </select>}
-        {field.type === 'checkbox' &&
-          field.options.map((option, i) => (
-            <div key={i}>
-              <input type="checkbox" id={`${field.id}-${i}`} />
-              <label htmlFor={`${field.id}-${i}`}>{option}</label>
-            </div>
-          ))}
-        {field.type === 'radio' &&
-          field.options.map((option, i) => (
-            <div key={i}>
-              <input type="radio" name={field.id} id={`${field.id}-${i}`} />
-              <label htmlFor={`${field.id}-${i}`}>{option}</label>
-            </div>
-          ))}
-        {!isNested && !isOutputView && (
-          <>
-            <button onClick={() => handleEditField(index)} style={{ marginLeft: '8px' }}>Edit</button>
-            <button onClick={() => handleRemoveField(index)} style={{ marginLeft: '8px' }}>Delete</button>
-          </>
-        )}
-        {isNested && !isOutputView && (
-          <>
-            <button onClick={() => handleEditField(editingIndex, index)} style={{ marginLeft: '8px' }}>Edit</button>
-            <button onClick={() => handleRemoveField(editingIndex, index)} style={{ marginLeft: '8px' }}>Delete</button>
-          </>
-        )}
-      </div>
-    );
-  };
-
   return (
-    <div style={{ display: 'flex', height: '100vh' }}>
-      <div style={{ flex: 1, padding: '20px', borderRight: '1px solid gray', overflowY: 'auto' }}>
+    <div style={{ display: "flex", height: "100vh" }}>
+      <div
+        style={{
+          flex: 1,
+          padding: "20px",
+          borderRight: "1px solid gray",
+          overflowY: "auto",
+        }}
+      >
         <h3>Available Fields</h3>
-        <button onClick={() => handleAddField('text')} className="button">Add Text Field</button>
-        <button onClick={() => handleAddField('checkbox')} className="button">Add Checkbox</button>
-        <button onClick={() => handleAddField('radio')} className="button">Add Radio Group</button>
-        <button onClick={() => handleAddField('date')} className="button">Add Date Picker</button>
-        <button onClick={() => handleAddField('select')} className="button">Add Dropdown</button>
-        <button onClick={() => handleAddField('textarea')} className="button">Add Textarea</button>
-        <button onClick={() => handleAddField('file')} className="button">Add File Upload</button>
-        <button onClick={handleAddColumn} className="button">Add Column</button>
+        <button onClick={() => handleAddField("text")} className="button">
+          Add Text Field
+        </button>
+        <button onClick={() => handleAddField("checkbox")} className="button">
+          Add Checkbox
+        </button>
+        <button onClick={() => handleAddField("radio")} className="button">
+          Add Radio Group
+        </button>
+        <button onClick={() => handleAddField("date")} className="button">
+          Add Date Picker
+        </button>
+        <button onClick={() => handleAddField("select")} className="button">
+          Add Dropdown
+        </button>
+        <button onClick={() => handleAddField("textarea")} className="button">
+          Add Textarea
+        </button>
+        <button onClick={() => handleAddField("file")} className="button">
+          Add File Upload
+        </button>
+        <button onClick={handleAddColumn} className="button">
+          Add Column
+        </button>
+        <button onClick={toggleOutputModal} className="button">
+          Custom Column Field
+        </button>
       </div>
 
-      <div style={{ flex: 2, padding: '20px', borderRight: '1px solid gray', overflowY: 'auto' }}>
+      <div style={{ flex: 2, padding: "20px", overflowY: "auto" }}>
         <h3>Form Builder</h3>
         <SortableWrapper onUpdate={handleSortUpdate}>
-          {formFields.map((field, index) => renderField(field, index))}
+          {formFields.map((field, index) => (
+            <div key={field.id} id={field.id}>
+              {field.type === "column" ? (
+                <Column
+                  field={field}
+                  index={index}
+                  handleEditField={handleEditField}
+                  handleRemoveField={handleRemoveField}
+                  handleEditSubField={handleEditField}
+                  handleRemoveSubField={handleRemoveField}
+                  handleSubFieldDragEnd={handleSortUpdate}
+                />
+              ) : (
+                renderField(
+                  field,
+                  index,
+                  false,
+                  false,
+                  handleEditField,
+                  handleRemoveField
+                )
+              )}
+            </div>
+          ))}
         </SortableWrapper>
-        <button onClick={handleSaveForm} className="button">Save Form</button>
-        <button onClick={toggleOutputModal} className="button">View Output</button>
-        {/* <button onClick={handleResetForm} className="button">Reset Form</button> */}
+      </div>
+
+      <div style={{ flex: 1, padding: "20px", overflowY: "auto" }}>
+        <h3>Form Output</h3>
+        <button onClick={toggleOutputModal} className="button">
+          Show Output
+        </button>
       </div>
 
       {showOutput && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <button onClick={toggleOutputModal} className="close-button">X</button>
+            <button onClick={toggleOutputModal} className="close-button">
+              X
+            </button>
             <h3>Form Output</h3>
             <form className="form-output">
-              {savedFormFields.map((field) => renderField(field, null, false, true))}
+              {formFields.map((field) => renderField(field, null, false, true))}
             </form>
           </div>
         </div>
@@ -218,18 +231,36 @@ const FormBuilder = () => {
       {editingField && (
         <div className="modal-overlay">
           <div className="modal-content">
+            <button
+              onClick={() => setEditingField(null)}
+              className="close-button"
+            >
+              X
+            </button>
             <h3>Edit Field</h3>
             <div>
               <label>Label</label>
-              <input type="text" name="label" value={editingField.label} onChange={handleFieldChange} />
+              <input
+                type="text"
+                name="label"
+                value={editingField.label}
+                onChange={handleFieldChange}
+              />
             </div>
-            {editingField.type === 'text' && (
+            {editingField.type === "text" && (
               <div>
                 <label>Placeholder</label>
-                <input type="text" name="placeholder" value={editingField.placeholder} onChange={handleFieldChange} />
+                <input
+                  type="text"
+                  name="placeholder"
+                  value={editingField.placeholder}
+                  onChange={handleFieldChange}
+                />
               </div>
             )}
-            {(editingField.type === 'checkbox' || editingField.type === 'radio' || editingField.type === 'select') && (
+            {(editingField.type === "checkbox" ||
+              editingField.type === "radio" ||
+              editingField.type === "select") && (
               <div>
                 <label>Options</label>
                 {editingField.options.map((option, index) => (
@@ -238,13 +269,17 @@ const FormBuilder = () => {
                     type="text"
                     value={option}
                     onChange={(e) => handleOptionChange(index, e.target.value)}
-                    style={{ display: 'block', marginTop: '5px' }}
+                    style={{ display: "block", marginTop: "5px" }}
                   />
                 ))}
-                <button onClick={addOption} style={{ marginTop: '8px' }}>Add Option</button>
+                <button onClick={addOption} style={{ marginTop: "8px" }}>
+                  Add Option
+                </button>
               </div>
             )}
-            <button onClick={handleSaveField} style={{ marginTop: '8px' }}>Save</button>
+            <button onClick={handleSaveField} style={{ marginTop: "8px" }}>
+              Save
+            </button>
           </div>
         </div>
       )}
